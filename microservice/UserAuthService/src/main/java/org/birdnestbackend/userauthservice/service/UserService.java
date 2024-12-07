@@ -1,6 +1,7 @@
 package org.birdnestbackend.userauthservice.service;
 
 import lombok.RequiredArgsConstructor;
+import org.birdnestbackend.userauthservice.DTO.LoginResponse;
 import org.birdnestbackend.userauthservice.config.JwtTokenProvider;
 import org.birdnestbackend.userauthservice.entity.User;
 import org.birdnestbackend.userauthservice.repository.UserRepository;
@@ -68,18 +69,20 @@ public class UserService {
                 });
     }
 
-    public Mono<String> login(String username, String password) {
+    public Mono<LoginResponse> login(String username, String password) {
         return userRepository.findByUsername(username)
                 .flatMap(user -> {
-                    if(passwordEncoder.matches(password, user.getPassword())) {
+                    if (passwordEncoder.matches(password, user.getPassword())) {
                         String token = jwtTokenProvider.generateToken(user);
-                        return Mono.just(token);
+                        long expiresIn = jwtTokenProvider.getJwtExpirationInMs(); // Assuming this is accessible
+                        return Mono.just(new LoginResponse(token, "Bearer", expiresIn, user.getRoles()));
                     } else {
                         return Mono.error(new RuntimeException("Нэвтрэх эсхүл нууц үг буруу байна"));
                     }
                 })
                 .switchIfEmpty(Mono.error(new RuntimeException("Нэвтрэх эсхүл нууц үг буруу байна")));
     }
+
 
     public Mono<String> forgotPassword(String email) {
         return userRepository.findByEmail(email)

@@ -21,7 +21,7 @@ public class AuthorizationServerConfig {
 
     private void configureAuthorization(ServerHttpSecurity.AuthorizeExchangeSpec authorize) {
         authorize
-                .pathMatchers("/api/v1/auth/register", "/api/v1/auth/login").permitAll() // Public endpoints
+                .pathMatchers("/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/validate").permitAll() // Public endpoints
                 .pathMatchers("/api/v1/auth/assign-role").hasRole("ADMIN") // Admin-only endpoint
                 .anyExchange().authenticated(); // All other endpoints require authentication
     }

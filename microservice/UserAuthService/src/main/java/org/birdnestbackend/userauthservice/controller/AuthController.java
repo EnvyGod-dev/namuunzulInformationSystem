@@ -3,6 +3,7 @@ package org.birdnestbackend.userauthservice.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.birdnestbackend.userauthservice.DTO.*;
+import org.birdnestbackend.userauthservice.config.JwtTokenProvider;
 import org.birdnestbackend.userauthservice.entity.User;
 import org.birdnestbackend.userauthservice.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -12,12 +13,15 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final UserService userService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @PostMapping("/register")
     public Mono<ResponseEntity<User>> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
@@ -38,11 +42,12 @@ public class AuthController {
 
 
     @PostMapping("/login")
-    public Mono<ResponseEntity<String>> login(@RequestBody LoginRequest loginRequest) {
+    public Mono<ResponseEntity<LoginResponse>> login(@RequestBody LoginRequest loginRequest) {
         return userService.login(loginRequest.getUsername(), loginRequest.getPassword())
-                .map(token -> ResponseEntity.ok("Bearer " + token))
-                .onErrorResume(ex -> Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage())));
+                .map(response -> ResponseEntity.ok(response))
+                .onErrorResume(ex -> Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null)));
     }
+
 
     @PostMapping("/assign-role")
     @PreAuthorize("hasRole('ADMIN')")
@@ -71,4 +76,22 @@ public class AuthController {
         return userService.getAllUsers();
     }
 
-}
+    @GetMapping("/validate")
+    public ResponseEntity<String> adminResource(@RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer ", "");
+        List<String> roles = jwtTokenProvider.getRolesFromToken(token);
+
+        if (roles.contains("ROLE_ADMIN")) {
+            return ResponseEntity.ok("Welcome, Admin!");
+        } else if(roles.contains("ROLE_CUSTOMER")) {
+            return ResponseEntity.ok("Welcome, Customer!");
+        } else if(roles.contains("ROLE_MANAGER")) {
+            return ResponseEntity.ok("Welcome, Manager!");
+        } else if(roles.contains("ROLE_OFFICER")) {
+            return ResponseEntity.ok("Welcome, Officer!");
+        } else {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+        }
+    }
+    }
+
