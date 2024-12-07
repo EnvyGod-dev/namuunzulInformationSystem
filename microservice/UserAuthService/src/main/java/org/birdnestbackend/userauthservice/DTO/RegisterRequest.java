@@ -4,6 +4,7 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 public class RegisterRequest {
@@ -30,4 +31,6 @@ public class RegisterRequest {
     @NotNull(message = "Төрсөн өдөр заавал оруулна уу.")
     @Past(message = "Төрсөн өдөр өнгөрсөн цаг дээр байх ёстой")
     private LocalDate birthday;
+
+    private List<String> roles;
 }

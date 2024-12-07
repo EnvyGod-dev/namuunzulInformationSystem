@@ -35,10 +35,12 @@ public class UserService {
                 .flatMap(existingUser -> Mono.<User>error(new RuntimeException("Бүртгэлтэй нэвтрэх нэр байна")))
                 .switchIfEmpty(Mono.defer(() -> {
                     user.setPassword(passwordEncoder.encode(user.getPassword()));
-                    user.setRoles(Collections.singletonList("ROLE_CUSTOMER"));
+//                    user.setRoles(Collections.singletonList("ROLE_CUSTOMER"));
                     return userRepository.save(user);
                 }));
     }
+
+
 
     public Flux<User> getAllUsers() {
         return userRepository.findAll();

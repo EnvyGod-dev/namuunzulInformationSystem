@@ -29,11 +29,13 @@ public class AuthController {
         user.setFirstName(registerRequest.getFirstName());
         user.setLastName(registerRequest.getLastName());
         user.setBirthday(registerRequest.getBirthday());
+        user.setRoles(registerRequest.getRoles());
 
         return userService.registerUser(user)
                 .map(savedUser -> ResponseEntity.status(HttpStatus.CREATED).body(savedUser))
                 .onErrorResume(ex -> Mono.just(ResponseEntity.badRequest().body(null)));
     }
+
 
     @PostMapping("/login")
     public Mono<ResponseEntity<String>> login(@RequestBody LoginRequest loginRequest) {
